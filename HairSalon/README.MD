@@ -1,5 +1,5 @@
 Hair Salon
-An app that , June 29, 2018
+An app that keeps track of Hair salon Staff and customers, August 8, 2018
 By Colin Bates
 Description
 _This app was created keep track of Hair stylists and customers. Specs:
