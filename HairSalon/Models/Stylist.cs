@@ -171,6 +171,89 @@ namespace Stylist.Models
        conn.Dispose();
      }
    }
+   public void Delete()
+     {
+       MySqlConnection conn = DB.Connection();
+       conn.Open();
+       var cmd = conn.CreateCommand() as MySqlCommand;
+       cmd.CommandText = @"DELETE FROM stylists WHERE id = @thisId; DELETE FROM stylists_specialties WHERE stylist_id = @thisId;";
 
+       cmd.Parameters.Add(new MySqlParameter("@thisID", _stylistId));
+
+       cmd.ExecuteNonQuery();
+
+       conn.Close();
+       if(conn != null)
+       {
+         conn.Dispose();
+       }
+     }
+     public void AddSpecialty(Specialty newSpecialty)
+      {
+        MySqlConnection conn = DB.Connection();
+        conn.Open();
+        var cmd = conn.CreateCommand() as MySqlCommand;
+        cmd.CommandText = @"INSERT INTO stylists_specialties (stylist_id, specialty_id) VALUES (@StylistId, @SpecialtyId);";
+
+        cmd.Parameters.Add(new MySqlParameter("@StylistId", _stylistId));
+        cmd.Parameters.Add(new MySqlParameter("@SpecialtyId", newSpecialty.GetSpecialtyId()));
+
+        cmd.ExecuteNonQuery();
+        conn.Close();
+        if (conn != null)
+        {
+          conn.Dispose();
+        }
+      }
+      public List<Specialty> GetCategories()
+      {
+        MySqlConnection conn = DB.Connection();
+            conn.Open();
+            var cmd = conn.CreateCommand() as MySqlCommand;
+            cmd.CommandText = @"SELECT specialty_id FROM specialties_items WHERE item_id = @itemId;";
+
+            MySqlParameter itemIdParameter = new MySqlParameter();
+            itemIdParameter.ParameterName = "@itemId";
+            itemIdParameter.Value = _id;
+            cmd.Parameters.Add(itemIdParameter);
+
+            var rdr = cmd.ExecuteReader() as MySqlDataReader;
+
+            List<int> specialtyIds = new List<int> {};
+            while(rdr.Read())
+            {
+                int specialtyId = rdr.GetInt32(0);
+                specialtyIds.Add(specialtyId);
+            }
+            rdr.Dispose();
+
+            List<Specialty> specialties = new List<Specialty> {};
+            foreach (int specialtyId in specialtyIds)
+            {
+                var specialtyQuery = conn.CreateCommand() as MySqlCommand;
+                specialtyQuery.CommandText = @"SELECT * FROM specialties WHERE id = @SpecialtyId;";
+
+                MySqlParameter specialtyIdParameter = new MySqlParameter();
+                specialtyIdParameter.ParameterName = "@SpecialtyId";
+                specialtyIdParameter.Value = specialtyId;
+                specialtyQuery.Parameters.Add(specialtyIdParameter);
+
+                var specialtyQueryRdr = specialtyQuery.ExecuteReader() as MySqlDataReader;
+                while(specialtyQueryRdr.Read())
+                {
+                    int thisSpecialtyId = specialtyQueryRdr.GetInt32(0);
+                    string specialtyName = specialtyQueryRdr.GetString(1);
+                    Specialty foundSpecialty = new Specialty(specialtyName, thisSpecialtyId);
+                    specialties.Add(foundSpecialty);
+                }
+                specialtyQueryRdr.Dispose();
+            }
+            conn.Close();
+            if (conn != null)
+            {
+                conn.Dispose();
+            }
+            return specialties;
+        }
   }
 }
