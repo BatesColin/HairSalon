@@ -22,7 +22,7 @@ namespace Stylist.Models
     {
       return _stylistName;
     }
-       public override bool Equals(System.Object otherStylist)
+    public override bool Equals(System.Object otherStylist)
     {
       if (!(otherStylist is Stylist))
       {
@@ -36,7 +36,7 @@ namespace Stylist.Models
         return (idEquality && descriptionEquality);
       }
     }
-          public override bool Equals(System.Object otherStylist)
+    public override bool Equals(System.Object otherStylist)
     {
       if (!(otherStylist is Stylist))
       {
@@ -50,7 +50,7 @@ namespace Stylist.Models
         return (idEquality && descriptionEquality);
       }
     }
-         public string GetDescription()
+    public string GetDescription()
     {
       return _description;
     }
@@ -62,6 +62,52 @@ namespace Stylist.Models
     {
       return _id;
     }
+    public void Save()
+   {
+     MySqlConnection conn = DB.Connection();
+     conn.Open();
 
-}
+     var cmd = conn.CreateCommand() as MySqlCommand;
+     cmd.CommandText = @"INSERT INTO `Stylists` (`name`) VALUES (@name);";
+
+     MySqlParameter description = new MySqlParameter();
+     description.ParameterName = "@name";
+     description.Value = this._name;
+     cmd.Parameters.Add(description);
+
+     cmd.ExecuteNonQuery();
+     _id = (int) cmd.LastInsertedId;    // This line is new!
+
+     conn.Close();
+     if (conn != null)
+     {
+       conn.Dispose();
+     }
+   }
+   public static List<Stylist> GetAll()
+    {
+      // return _instances;
+      List<Stylist> allStylists = new List<Stylist> {};
+      MySqlConnection conn = DB.Connection();
+      conn.Open();
+      MySqlCommand cmd = conn.CreateCommand() as MySqlCommand;
+      cmd.CommandText = @"SELECT * FROM stylists;";
+      MySqlDataReader rdr = cmd.ExecuteReader() as MySqlDataReader;
+      while(rdr.Read())
+      {
+        int itemId = rdr.GetInt32(0);
+        string itemDescription = rdr.GetString(1);
+        Stylist newStylist = new Stylist(itemDescription, itemId);
+        allStylists.Add(newStylist);
+      }
+      conn.Close();
+      if (conn != null)
+      {
+        conn.Dispose();
+      }
+      return allStylists;
+    }
+
+
+  }
 }
